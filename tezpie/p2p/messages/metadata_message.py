@@ -16,4 +16,4 @@ class MetadataMessage(Message):
 		bio = MessageParser(data)
 		dmempool = bio.unpack('bool')
 		privnode = bio.unpack('bool')
-		return MetadataMessage(port, dmempool, privnode)
+		return MetadataMessage(dmempool, privnode)
