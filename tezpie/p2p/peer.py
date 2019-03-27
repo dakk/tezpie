@@ -2,6 +2,7 @@ import logging
 import socket
 from enum import Enum
 from .. import config
+from ..crypto import Identity, Nonce
 from .messages import *
 
 logger = logging.getLogger('tezpie')
@@ -17,7 +18,8 @@ class Peer:
 		self.host = host
 		self.port = port
 		self.pubkey = None
-		self.nonce = None
+		self.remote_nonce = None
+		self.local_nonce = Nonce.random()
 		self.status = PeerStatus.CONNECTING
 
 	def recv_message(self, msg_class):
@@ -28,26 +30,51 @@ class Peer:
 		return msg
 
 	def send_message(self, msg):
+		logger.debug (msg)
 		self.socket.send(msg.serialize())
 		
 	def handshake(self):
+		# Receive the connection message
 		conn_msg = self.recv_message(ConnectionMessage)
 		self.pubkey = conn_msg.pubkey
-		self.nonce = conn_msg.nonce
-		self.send_message(conn_msg)
+		self.remote_nonce = Nonce(conn_msg.nonce)
+
+		# Prepare and send the connection message
+		iden = Identity.random()
+		msg = ConnectionMessage(config.P2P_DEFAULT_PORT, iden.pubkey, iden.powstamp, self.local_nonce.get_and_increment(), [Version("TEZOS_ALPHANET_2018-11-30T15:30:56Z", 0, 0)])
+		self.send_message(msg)
+
+		# Send metadata
+		self.send_message(MetadataMessage(False, False))
+
+		# Receive metadata
+		meta_msg = self.recv_message(MetadataMessage)
+		print (meta_msg)
+
+		# Send ack
+		self.sendMessage(AckMessage(True))
+
+		# Receive ack
+		ack_msg = self.recv_message(AckMessage)
+		print (ack_msg)
+
+		return True
+
 
 	def connect(self):
 		logger.info ('Connecting to %s:%d' % (self.host, self.port))
-		if True:
+		try:
 			self.socket.settimeout (3.0)
 			self.socket.connect ((self.host, self.port))
 			self.socket.settimeout (None)
 			self.handshake ()
 			self.status = PeerStatus.CONNECTED
 			logger.info ('Connected')
-		else:
+			return True
+		except Exception as e:
 			print (e)
 			self.status = PeerStatus.DISCONNECTED
 			logger.info ('Connection failed')
+			return False
 		
 		

@@ -8,7 +8,8 @@ FIELDS = {
 	'u16le': [2, '<H'],
 	'u16be': [2, '>H'],
 	'u8le': [1, '<B'],
-	'u8be': [1, '>B']
+	'u8be': [1, '>B'],
+	'bool': [1, '?']
 }
 
 class MessageParseError(Exception):

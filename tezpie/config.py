@@ -34,5 +34,6 @@ logger.addHandler (stream)
 logger.setLevel (10)
 
 
-P2P_BOOTSTRAP_NODES = ["boot.tzalpha.net", "bootalpha.tzbeta.net"]
+P2P_LOOKUP_NODES = ["boot.tzalpha.net", "bootalpha.tzbeta.net"]
 P2P_DEFAULT_PORT = 9732
+P2P_MAX_PEERS = 8

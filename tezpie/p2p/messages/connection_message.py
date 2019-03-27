@@ -7,8 +7,8 @@ class Version(MessagePart):
 		self.major = major
 		self.minor = minor
 
-	def __repr__(self): 
-		return 'Version(%s, %d, %d)' % (self.name, self.minor, self.major)
+	#def __repr__(self): 
+	#	return 'Version(%s, %d, %d)' % (self.name, self.minor, self.major)
 
 	def serialize(self, bio):
 		bio.pack('u16be', 0) # waht's this? 
@@ -33,8 +33,8 @@ class ConnectionMessage(Message):
 		self.pow_stamp = pow_stamp
 		self.nonce = nonce
 
-	def __repr__(self): 
-		return 'ConnectionMessage(%d, %s)' % (self.port, self.pubkey)
+	#def __repr__(self): 
+	#	return 'ConnectionMessage(%d, %s)' % (self.port, self.pubkey)
 
 	def serialize(self):
 		bio = MessageSerializer()
