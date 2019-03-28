@@ -53,10 +53,10 @@ class MessageSerializer:
 
 	
 class MessagePart:
-	def serialize(self):
+	def serialize(self, mserializer):
 		pass
 
-	def parse(data):
+	def parse(mparser):
 		pass
 
 class Message:

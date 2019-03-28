@@ -40,7 +40,9 @@ class Peer:
 		data = msg.serialize()
 
 		if enc:
+			print(data, len(data))
 			data = self.keybox.encrypt(data)
+			print (data, len(data))
 
 		self.socket.send(struct.pack('>H', len(data)))
 		self.socket.send(data)
@@ -58,14 +60,16 @@ class Peer:
 		remote_nonce = Nonce(conn_msg.nonce)
 
 		# From here, communications are encrypted: keybox creation
-		self.keybox = KeyBox(remote_nonce, self.pubkey, local_nonce, self.identity.seckey)
+		nonces = Nonce.generate(msg.serialize(), conn_msg.serialize)
+		print (nonces)
+		self.keybox = KeyBox(nonce[1], self.pubkey, nonce[0], self.identity.seckey)
+
+		# Send metadata
+		self.send_message(MetadataMessage(False, False))
 
 		# Receive metadata
 		meta_msg = self.recv_message(MetadataMessage)
 		print (meta_msg)
-
-		# Send metadata
-		self.send_message(MetadataMessage(False, False))
 
 		# Send ack
 		self.send_message(AckMessage(True))
