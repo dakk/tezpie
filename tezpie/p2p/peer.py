@@ -42,7 +42,7 @@ class Peer:
 		if enc:
 			print(data, len(data))
 			data = self.keybox.encrypt(data)
-			print (data, len(data))
+		print (data, len(data))
 
 		self.socket.send(struct.pack('>H', len(data)))
 		self.socket.send(data)
@@ -51,16 +51,15 @@ class Peer:
 	def handshake(self):
 		# Prepare and send the connection message
 		local_nonce = Nonce.random()
-		msg = ConnectionMessage(config.P2P_DEFAULT_PORT, self.identity.pubkey, self.identity.powstamp, local_nonce.get_and_increment(), [Version("TEZOS_ALPHANET_2018-11-30T15:30:56Z", 0, 0)])
-		self.send_message(msg, enc=False)
+		conn_msg_sent = ConnectionMessage(config.P2P_DEFAULT_PORT, self.identity.pubkey, self.identity.powstamp, local_nonce.get_and_increment(), [Version("TEZOS_ALPHANET_2018-11-30T15:30:56Z", 0, 0)])
+		self.send_message(conn_msg_sent, enc=False)
 
 		# Receive the connection message
-		conn_msg = self.recv_message(ConnectionMessage, enc=False)
-		self.pubkey = conn_msg.pubkey
-		remote_nonce = Nonce(conn_msg.nonce)
+		conn_msg_recv = self.recv_message(ConnectionMessage, enc=False)
+		self.pubkey = conn_msg_recv.pubkey
 
 		# From here, communications are encrypted: keybox creation
-		nonces = Nonce.generate(msg.serialize(), conn_msg.serialize)
+		nonces = Nonce.generate(conn_msg_sent.serialize(), conn_msg_recv.serialize)
 		print (nonces)
 		self.keybox = KeyBox(nonce[1], self.pubkey, nonce[0], self.identity.seckey)
 
@@ -81,8 +80,9 @@ class Peer:
 		return True
 
 
+
 	def connect(self):
-		logger.info ('Connecting to %s:%d' % (self.host, self.port))
+		logger.info('Connecting to %s:%d' % (self.host, self.port))
 		try:
 			self.socket.settimeout (3.0)
 			self.socket.connect ((self.host, self.port))
