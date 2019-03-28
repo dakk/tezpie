@@ -32,6 +32,6 @@ class PeerPool:
 
 		#while len(self.peers.items()) < config.P2P_MAX_PEERS:
 		ip = self.availableNodes[random.randint(0, len(self.availableNodes) - 1)]
-		p = Peer(ip)
+		p = Peer('34.253.64.43') #ip)
 		if p.connect():
 			self.peers[ip] = p

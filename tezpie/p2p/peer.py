@@ -25,6 +25,7 @@ class Peer:
 
 	def recv_message(self, msg_class, enc=True):
 		mlen = int.from_bytes(self.socket.recv(2), 'big')
+		print(mlen)
 		data = self.socket.recv(mlen)
 
 		if enc:
@@ -48,7 +49,7 @@ class Peer:
 	def handshake(self):
 		# Prepare and send the connection message
 		local_nonce = Nonce.random()
-		msg = ConnectionMessage(config.P2P_DEFAULT_PORT, self.iden.pubkey, iden.powstamp, local_nonce.get_and_increment(), [Version("TEZOS_ALPHANET_2018-11-30T15:30:56Z", 0, 0)])
+		msg = ConnectionMessage(config.P2P_DEFAULT_PORT, self.identity.pubkey, self.identity.powstamp, local_nonce.get_and_increment(), [Version("TEZOS_ALPHANET_2018-11-30T15:30:56Z", 0, 0)])
 		self.send_message(msg, enc=False)
 
 		# Receive the connection message
@@ -57,7 +58,7 @@ class Peer:
 		remote_nonce = Nonce(conn_msg.nonce)
 
 		# From here, communications are encrypted: keybox creation
-		self.keybox = KeyBox(remote_nonce, self.pubkey, local_nonce, self.iden.seckey)
+		self.keybox = KeyBox(remote_nonce, self.pubkey, local_nonce, self.identity.seckey)
 
 		# Receive metadata
 		meta_msg = self.recv_message(MetadataMessage)
