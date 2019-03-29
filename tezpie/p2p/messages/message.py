@@ -40,6 +40,10 @@ class MessageSerializer:
 		f = FIELDS[ftype]
 		self.raw.write(struct.pack(f[1], data))
 
+
+	def pack_raw(self, data):
+		self.raw.write(data)
+
 	def pack_bytes(self, data):
 		self.raw.write(binascii.unhexlify(data))
 

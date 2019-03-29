@@ -1,5 +1,6 @@
 from io import BytesIO
 from .message import *
+from ...crypto.nonce import Nonce
 
 class Version(MessagePart):
 	def __init__ (self, name, major, minor):
@@ -41,7 +42,7 @@ class ConnectionMessage(Message):
 		bio.pack('u16be', self.port)
 		bio.pack_bytes(self.pubkey)
 		bio.pack_bytes(self.pow_stamp)
-		bio.pack_bytes(self.nonce)
+		bio.pack_raw(self.nonce.get())
 		bio = self.versions[0].serialize(bio)
 		return bio.to_bytes()
 
@@ -50,6 +51,6 @@ class ConnectionMessage(Message):
 		port = bio.unpack('u16be')
 		pubkey = bio.unpack_bytes(32)
 		pow_stamp = bio.unpack_bytes(24)
-		nonce = bio.unpack_bytes(24)
+		nonce = Nonce.from_bin(bio.unpack_bytes(24))
 		version = Version.parse(bio)	
 		return ConnectionMessage(port, pubkey, pow_stamp, nonce, [version])

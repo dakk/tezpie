@@ -1,4 +1,5 @@
 import json
+import nacl.utils
 
 class Identity:
     def load(fpath):
@@ -7,6 +8,8 @@ class Identity:
             return Identity(data['peer_id'], data['public_key'], data['secret_key'], data['proof_of_work_stamp'])
 
     def random():
+        # key = nacl.utils.random(32)
+
         data = { 
             "peer_id": "ids2KLbnrBkrxSWny8z5qiSN9gkQXX",
             "public_key":
