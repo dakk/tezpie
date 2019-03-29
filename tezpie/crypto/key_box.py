@@ -12,7 +12,7 @@ class KeyBox:
 		return self.box
 
 	def decrypt(self, encdata):
-		data = self.box.decrypt(self.remote_nonce.get() + encdata, self.remote_nonce.get())
+		data = self.box.decrypt(encdata, self.remote_nonce.get())
 		self.remote_nonce.increment()
 		return data
 

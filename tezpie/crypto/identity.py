@@ -11,12 +11,10 @@ class Identity:
         # key = nacl.utils.random(32)
 
         data = { 
-            "peer_id": "ids2KLbnrBkrxSWny8z5qiSN9gkQXX",
-            "public_key":
-            "69812c236724196a977617e38b4b6e5494e1e6aa528d6b4bab286f364a81201c",
-            "secret_key":
-            "f403fad34cac90f5133283a4391f7a115887b6fdbac8c60f5f8def7eed2ec465",
-            "proof_of_work_stamp": "10d31d36f16d2849d2d9a47123d18bd0fbdedc6959747650" 
+            "peer_id": "idswiPoos4ZZ8S2WT4SCz6eUhjXMhU",
+            "public_key": "1c0df7cfe10010d0784ee426c0e8fad73c8241d29fa15c8782df66f972f33e48",
+            "secret_key": "93ef324958163f72a9105847f28702c3e272ba9b1eeafb6dc51578630ac8b819",
+            "proof_of_work_stamp": "cb7909aeef66b57be8a7f2d31cd9742bbc4c68850b6c9399" 
         }
         return Identity(data['peer_id'], data['public_key'], data['secret_key'], data['proof_of_work_stamp'])
 

@@ -32,7 +32,7 @@ class PeerPool:
 				
 	def listen(self):
 		self.socket_listen = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.socket_listen.bind(('127.0.0.1', config.P2P_DEFAULT_PORT))
+		self.socket_listen.bind(('localhost', config.P2P_DEFAULT_PORT))
 		self.socket_listen.listen(5)
 		logger.debug ('Listening on port %d' % config.P2P_DEFAULT_PORT)
 
@@ -53,8 +53,8 @@ class PeerPool:
 		if True:
 			ip = random.choice (self.discoveredNodes)
 			self.discoveredNodes.remove(ip)
-			#ip = '127.0.0.1'
-			p = Peer(ip)
+			p = Peer('localhost', 19732)
+			#p = Peer(ip)
 			if p.connect():
 				self.peers[ip] = p
 			#time.sleep(2)

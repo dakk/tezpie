@@ -19,7 +19,7 @@ class Peer:
 			self.socket = sock
 			self.incoming = True
 		else:
-			self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			self.socket = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
 			self.incoming = False
 
 		self.host = host
@@ -31,7 +31,6 @@ class Peer:
 
 	def recv_message(self, msg_class, enc=True):
 		mlen = int.from_bytes(self.socket.recv(2), 'big')
-		print(mlen)
 		data = self.socket.recv(mlen)
 
 		if enc:
@@ -46,9 +45,7 @@ class Peer:
 		data = msg.serialize()
 
 		if enc:
-			print(data, len(data))
 			data = self.keybox.encrypt(data)
-			print (data, len(data))
 
 		self.socket.send(struct.pack('>H', len(data)))
 		self.socket.send(data)
@@ -73,7 +70,6 @@ class Peer:
 
 		# From here, communications are encrypted: keybox creation
 		nonces = Nonce.generate(conn_msg_sent.serialize(), conn_msg_recv.serialize(), self.incoming)
-		print (nonces)
 		self.keybox = KeyBox(nonces['remote'], self.pubkey, nonces['local'], self.identity.seckey)
 
 
@@ -110,9 +106,9 @@ class Peer:
 	def connect(self):
 		logger.info('Connecting to %s:%d' % (self.host, self.port))
 		if True: #try:
-			self.socket.settimeout (3.0)
+			#self.socket.settimeout (3.0)
 			self.socket.connect ((self.host, self.port))
-			self.socket.settimeout (None)
+			#self.socket.settimeout (None)
 			self.handshake ()
 			self.status = PeerStatus.CONNECTED
 			logger.info ('Connected')
