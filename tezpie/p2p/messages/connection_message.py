@@ -51,6 +51,6 @@ class ConnectionMessage(Message):
 		port = bio.unpack('u16be')
 		pubkey = bio.unpack_bytes(32)
 		pow_stamp = bio.unpack_bytes(24)
-		nonce = Nonce.from_bin(bio.unpack_bytes(24))
+		nonce = Nonce.from_bin(bio.unpack_raw(24))
 		version = Version.parse(bio)	
 		return ConnectionMessage(port, pubkey, pow_stamp, nonce, [version])

@@ -29,6 +29,9 @@ class MessageParser:
 	def unpack_bytes(self, l):
 		return binascii.hexlify(self.raw.read(l))
 
+	def unpack_raw(self, l):
+		return self.raw.read(l)
+
 	def unpack_string(self):
 		return self.raw.read(self.unpack('u16be')).decode('ascii')
 

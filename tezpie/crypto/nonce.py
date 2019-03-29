@@ -32,9 +32,10 @@ class Nonce:
 			init_msg = sent
 			resp_msg = recv
 
+		print ('gennonces')
 		nonce_init_to_resp = blake2b(init_msg + resp_msg + b"Init -> Resp", encoder=RawEncoder)[0:Nonce.SIZE]
 		nonce_resp_to_init = blake2b(init_msg + resp_msg + b"Resp -> Init", encoder=RawEncoder)[0:Nonce.SIZE]
-
+		print(len(nonce_init_to_resp))
 		a = Nonce.from_bin(nonce_init_to_resp, 'big')
 		b = Nonce.from_bin(nonce_resp_to_init, 'big')
 

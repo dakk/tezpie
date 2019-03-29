@@ -9,4 +9,5 @@ def start():
 	logger.info ('tezpie is starting')
 
 	pp = PeerPool()
+	#pp.listen()
 	pp.bootstrap()

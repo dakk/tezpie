@@ -10,6 +10,7 @@ logger = logging.getLogger('tezpie')
 
 class PeerPool:
 	def __init__(self):
+		self.socket_listen = None
 		self.peers = {}
 		self.discoveredNodes = []
 
@@ -29,6 +30,20 @@ class PeerPool:
 				pass
 		return n
 				
+	def listen(self):
+		self.socket_listen = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.socket_listen.bind(('127.0.0.1', config.P2P_DEFAULT_PORT))
+		self.socket_listen.listen(5)
+		logger.debug ('Listening on port %d' % config.P2P_DEFAULT_PORT)
+
+		while True:
+			(clientsocket, ip) = self.socket_listen.accept()
+			p = Peer.from_socket(clientsocket, ip)
+			if p:
+				self.peers[ip] = p
+
+
+
 
 	def bootstrap(self):
 		nips = self.lookup()
@@ -38,7 +53,8 @@ class PeerPool:
 		if True:
 			ip = random.choice (self.discoveredNodes)
 			self.discoveredNodes.remove(ip)
+			#ip = '127.0.0.1'
 			p = Peer(ip)
 			if p.connect():
 				self.peers[ip] = p
-			time.sleep(2)
+			#time.sleep(2)
