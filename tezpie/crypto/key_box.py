@@ -8,13 +8,16 @@ class KeyBox:
 		self.local_nonce = local_nonce
 		self.box = Box(PrivateKey(local_seckey, HexEncoder), PublicKey(remote_pubkey, HexEncoder))
 
+	def native_box(self):
+		return self.box
+
 	def decrypt(self, encdata):
-		data = self.box.decrypt(encdata, self.remote_nonce.get())
+		data = self.box.decrypt(self.remote_nonce.get() + encdata, self.remote_nonce.get())
 		self.remote_nonce.increment()
 		return data
 
 	def encrypt(self, data):
-		encdata = self.box.encrypt(data, self.local_nonce.get())
+		encdata = self.box.encrypt(data, self.local_nonce.get())[24::]
 		self.local_nonce.increment()
 		return encdata
 
