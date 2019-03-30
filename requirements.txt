@@ -1,2 +1,4 @@
 colorlog
 pynacl
+base58
+plyvel
