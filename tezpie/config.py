@@ -1,5 +1,7 @@
 from colorlog import ColoredFormatter
 import logging
+import sys
+import os
 
 formatter = ColoredFormatter(
 	'%(log_color)s[%(asctime)-8s] %(module)s: %(message_log_color)s%(message)s',
@@ -34,7 +36,62 @@ logger.addHandler (stream)
 logger.setLevel (10)
 
 
-P2P_LOOKUP_NODES = ["boot.tzalpha.net", "bootalpha.tzbeta.net"]
-P2P_DEFAULT_PORT = 9732
-P2P_MAX_PEERS = 8
-P2P_MIN_PEERS = 1
+
+
+def app_data_path (appname, roaming=True):
+	if sys.platform.startswith('java'):
+		os_name = platform.java_ver()[3][0]
+		if os_name.startswith('Windows'):
+			system = 'win32'
+		elif os_name.startswith('Mac'):
+			system = 'darwin'
+		else:
+			system = 'linux2'
+	else:
+		system = sys.platform
+
+	if system == "win32":
+		const = roaming and "CSIDL_APPDATA" or "CSIDL_LOCAL_APPDATA"
+		path = os.path.normpath(_get_win_folder(const))
+		if appname:
+			path = os.path.join(path, appname)
+	elif system == 'darwin':
+		path = os.path.expanduser('~/Library/Application Support/')
+		if appname:
+			path = os.path.join(path, appname)
+	else:
+		path = os.getenv('XDG_DATA_HOME', os.path.expanduser("~/"))
+		if appname:
+			path = os.path.join(path, '.'+appname)
+	return path
+
+
+NAME = "tezpie"
+VERSION = 0.1
+
+class Config:
+	_instance = None
+
+	config = {
+		'version': VERSION,
+		'data_dir': app_data_path(NAME),
+		'p2p_lookup_nodes': ["boot.tzalpha.net", "bootalpha.tzbeta.net"],
+		'p2p_default_port': 9732,
+		'p2p_max_peers': 8,
+		'p2p_min_peers': 1,
+		'verbose': 5,
+		'daemon': False,
+	}
+
+	def get_obj():
+		if Config._instance == None:
+			Config._instance = Config()
+		return Config._instance
+
+	def get(key):
+		o = Config.get_obj()
+		return o.config[key]
+
+	def set(key, value):
+		o = Config.get_obj()
+		o.config[key] = value

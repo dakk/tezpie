@@ -3,9 +3,10 @@
 
 from setuptools import find_packages
 from setuptools import setup
+from tezpie import config
 
-setup(name='tezpie',
-	version=0.1,
+setup(name=config.NAME,
+	version=config.VERSION,
 	description='',
 	author=['Davide Gessa'],
 	setup_requires='setuptools',
@@ -16,7 +17,8 @@ setup(name='tezpie',
 		'tezpie.p2p.messages',
 		'tezpie.proto',
 		'tezpie.storage',
-		'tezpie.crypto'
+		'tezpie.crypto',
+		'tezpie.rpc'
 	],
 	entry_points={
 		'console_scripts': [

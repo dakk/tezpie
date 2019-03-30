@@ -3,7 +3,7 @@ import logging
 import socket
 import random
 import time
-from .. import config
+from ..config import Config
 from .peer import Peer
 
 logger = logging.getLogger('tezpie')
@@ -19,9 +19,9 @@ class PeerPool:
 		self.discoveredNodes = []
 		n = 0
 
-		for x in config.P2P_LOOKUP_NODES:
+		for x in Config.get('p2p_lookup_nodes'):
 			try:
-				ips = socket.getaddrinfo(x, config.P2P_DEFAULT_PORT)
+				ips = socket.getaddrinfo(x, Config.get('p2p_default_port'))
 				for ip in ips:
 					if ip[0].value == 2: # Only ipv4
 						self.discoveredNodes.append(ip[4][0])
@@ -32,9 +32,9 @@ class PeerPool:
 				
 	def listen(self):
 		self.socket_listen = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.socket_listen.bind(('localhost', config.P2P_DEFAULT_PORT))
+		self.socket_listen.bind(('localhost', Config.get('p2p_default_port')))
 		self.socket_listen.listen(5)
-		logger.debug ('Listening on port %d' % config.P2P_DEFAULT_PORT)
+		logger.debug ('listening on port %d' % Config.get('p2p_default_port'))
 
 		while True:
 			(clientsocket, ip) = self.socket_listen.accept()
@@ -47,9 +47,9 @@ class PeerPool:
 
 	def bootstrap(self):
 		nips = self.lookup()
-		logger.debug ('DNS lookup: found %d ips' % nips)
+		logger.debug ('dns lookup: found %d ips' % nips)
 
-		#while len(self.peers.items()) < config.P2P_MIN_PEERS and len(self.discoveredNodes) > 0:
+		#while len(self.peers.items()) < Config.get('p2p_min_peers') and len(self.discoveredNodes) > 0:
 		if True:
 			ip = random.choice (self.discoveredNodes)
 			self.discoveredNodes.remove(ip)

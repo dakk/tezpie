@@ -2,7 +2,7 @@ import logging
 import socket
 import struct
 from enum import Enum
-from .. import config
+from ..config import Config
 from ..crypto import Identity, Nonce, KeyBox
 from .messages import *
 
@@ -14,7 +14,7 @@ class PeerStatus(Enum):
 	CONNECTING = 2
 
 class Peer:
-	def __init__(self, host, port = config.P2P_DEFAULT_PORT, sock = None):
+	def __init__(self, host, port = Config.get('p2p_default_port'), sock = None):
 		if sock:
 			self.socket = sock
 			self.incoming = True
@@ -55,8 +55,8 @@ class Peer:
 		local_nonce = Nonce.random()
 
 		# Prepare and send the connection message
-		if self.incoming:
-			conn_msg_sent = ConnectionMessage(config.P2P_DEFAULT_PORT, self.identity.pubkey, self.identity.powstamp, local_nonce, [Version("TEZOS_ALPHANET_2018-11-30T15:30:56Z", 0, 0)])
+		conn_msg_sent = ConnectionMessage(Config.get('p2p_default_port'), self.identity.pubkey, self.identity.powstamp, local_nonce, [Version("TEZOS_ALPHANET_2018-11-30T15:30:56Z", 0, 0)])
+		if not self.incoming:
 			self.send_message(conn_msg_sent, enc=False)
 
 		# Receive the connection message
@@ -64,12 +64,11 @@ class Peer:
 		self.pubkey = conn_msg_recv.pubkey
 
 		# Prepare and send the connection message
-		if not self.incoming:
-			conn_msg_sent = ConnectionMessage(config.P2P_DEFAULT_PORT, self.identity.pubkey, self.identity.powstamp, local_nonce, [Version("TEZOS_ALPHANET_2018-11-30T15:30:56Z", 0, 0)])
+		if self.incoming:
 			self.send_message(conn_msg_sent, enc=False)
 
 		# From here, communications are encrypted: keybox creation
-		nonces = Nonce.generate(conn_msg_sent.serialize(), conn_msg_recv.serialize(), self.incoming)
+		nonces = Nonce.generate(conn_msg_sent.serialize(), conn_msg_recv.serialize(), not self.incoming)
 		self.keybox = KeyBox(nonces['remote'], self.pubkey, nonces['local'], self.identity.seckey)
 
 
@@ -90,8 +89,8 @@ class Peer:
 		return ack_msg.status
 
 	def from_socket(socket, address):
-		logger.info('Connection from %s:%d' % (address, config.P2P_DEFAULT_PORT))
-		p = Peer(address, config.P2P_DEFAULT_PORT, socket)
+		logger.info('connection from %s:%d' % (address, Config.get('p2p_default_port')))
+		p = Peer(address, Config.get('p2p_default_port'), socket)
 		try:
 			p.handshake ()
 			p.status = PeerStatus.CONNECTED
@@ -104,19 +103,19 @@ class Peer:
 			return None
 
 	def connect(self):
-		logger.info('Connecting to %s:%d' % (self.host, self.port))
+		logger.info('connecting to %s:%d' % (self.host, self.port))
 		if True: #try:
 			#self.socket.settimeout (3.0)
 			self.socket.connect ((self.host, self.port))
 			#self.socket.settimeout (None)
 			self.handshake ()
 			self.status = PeerStatus.CONNECTED
-			logger.info ('Connected')
+			logger.info ('connected')
 			return True
 		else: #except Exception as e:
 			print (e)
 			self.status = PeerStatus.DISCONNECTED
-			logger.info ('Connection failed')
+			logger.info ('connection failed')
 			return False
 		
 		
