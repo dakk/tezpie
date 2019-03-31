@@ -5,6 +5,7 @@ import getopt
 
 from .config import Config
 from .p2p import PeerPool
+from .crypto import Identity
 
 logger = logging.getLogger('tezpie')
 
@@ -45,7 +46,8 @@ def start():
 
 	logger.info ('tezpie is starting')
 	logger.debug ('directory set to %s', Config.get('data_dir'))
-	for d in ['', '/blocks/', '/state/']:
+
+	for d in ['', '/blocks/', '/chainstate/']:
 		if not os.path.isdir (Config.get('data_dir') + d):
 			os.mkdir (Config.get('data_dir') + d)
 
@@ -61,7 +63,14 @@ def start():
 
 	logger.setLevel (60 - Config.get('verbose') * 10)
 
+	# Identity initialization
+	try:
+		identity = Identity.load()
+	except:
+		identity = Identity.generate()
+		identity.save()
 
-	pp = PeerPool()
+
+	pp = PeerPool(identity)
 	#pp.listen()
 	pp.bootstrap()

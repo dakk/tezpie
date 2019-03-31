@@ -9,7 +9,8 @@ from .peer import Peer
 logger = logging.getLogger('tezpie')
 
 class PeerPool:
-	def __init__(self):
+	def __init__(self, identity):
+		self.identity = identity
 		self.socket_listen = None
 		self.peers = {}
 		self.discoveredNodes = []
@@ -53,7 +54,7 @@ class PeerPool:
 		if True:
 			ip = random.choice (self.discoveredNodes)
 			self.discoveredNodes.remove(ip)
-			p = Peer('localhost', 19732)
+			p = Peer(self.identity, 'localhost', 19732)
 			#p = Peer(ip)
 			if p.connect():
 				self.peers[ip] = p

@@ -14,7 +14,7 @@ class PeerStatus(Enum):
 	CONNECTING = 2
 
 class Peer:
-	def __init__(self, host, port = Config.get('p2p_default_port'), sock = None):
+	def __init__(self, identity, host, port = Config.get('p2p_default_port'), sock = None):
 		if sock:
 			self.socket = sock
 			self.incoming = True
@@ -26,7 +26,7 @@ class Peer:
 		self.port = port
 		self.pubkey = None
 		self.status = PeerStatus.CONNECTING
-		self.identity = Identity.random()
+		self.identity = identity
 		self.keybox = None
 
 	def recv_message(self, msg_class, enc=True):
