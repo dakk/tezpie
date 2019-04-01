@@ -2,6 +2,7 @@ from io import BytesIO
 from .message import *
 from ...crypto.nonce import Nonce
 
+
 class Version(MessagePart):
 	def __init__ (self, name, major, minor):
 		self.name = name

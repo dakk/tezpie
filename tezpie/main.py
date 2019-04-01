@@ -2,10 +2,12 @@ import logging
 import os
 import sys
 import getopt
+import binascii
 
 from .config import Config
 from .p2p import PeerPool
-from .crypto import Identity
+from .p2p.messages import ConnectionMessage
+from .crypto import Identity, Nonce, KeyBox
 
 logger = logging.getLogger('tezpie')
 
@@ -74,3 +76,22 @@ def start():
 	pp = PeerPool(identity)
 	#pp.listen()
 	pp.bootstrap()
+
+	#"""
+	n = Nonce(3369213215035299664512484585000639319797562869764196177932)
+	remote_pub = b"6c7266f30190cb955da4bb4e665cdf66b741ac5e68f6a7f580a94c879a21d62f"
+	sent = b"007c26041c0df7cfe10010d0784ee426c0e8fad73c8241d29fa15c8782df66f972f33e48cb7909aeef66b57be8a7f2d31cd9742bbc4c68850b6c939989683a2e927b0b017ebda76400fb883fabdc064b286c980c0000002254455a4f535f424554414e45545f323031382d30362d33305431363a30373a33325a00000000"
+	recv = b"007c4d146c7266f30190cb955da4bb4e665cdf66b741ac5e68f6a7f580a94c879a21d62f73db0e9d1a25784c1ebd94e806cdc99ed12675ea46834e42159c0e9be276e6411858e87ce7b78e307ed7f0cd881d312a0000002254455a4f535f424554414e45545f323031382d30362d33305431363a30373a33325a00000000"
+	#print (ConnectionMessage.parse(binascii.unhexlify(recv)).pubkey)
+
+	nonces = Nonce.generate(binascii.unhexlify(sent), binascii.unhexlify(recv), False)
+	keybox = KeyBox(nonces['remote'], remote_pub, nonces['local'], identity.seckey)
+	#keybox = KeyBox(nonces['remote'], identity.seckey, nonces['local'], remote_pub)
+
+	sent2 = b"0000"
+	#print(binascii.hexlify(keybox.encrypt(binascii.unhexlify(sent2))))
+	sent2_enc = b"96c7a8f46a9945626babe703b12d239f3eec"
+	recv2_enc = b"f599e74759650965d948d4851e2d39d0eeec"
+	recv2 = keybox.native_box().decrypt(binascii.unhexlify(recv2_enc), nonces['remote'].get())
+	print (recv2)
+	#"""

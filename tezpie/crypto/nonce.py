@@ -9,8 +9,11 @@ from nacl.encoding import RawEncoder
 class Nonce:
 	SIZE = 24
 
-	def __init__(self):
-		self.nonce = 0
+	def __init__(self, num = None):
+		if num != None:
+			self.nonce = num
+		else:
+			self.nonce = 0
 
 	def from_hex(h, endianess="big"):
 		return Nonce.from_bin(binascii.unhexlify(h), endianess)
@@ -42,6 +45,9 @@ class Nonce:
 
 	def increment(self):
 		self.nonce += 1
+		
+	def decrement(self):
+		self.nonce -= 1
 
 	def __int__(self):
 		return self.nonce

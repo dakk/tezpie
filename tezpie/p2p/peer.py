@@ -1,6 +1,8 @@
 import logging
 import socket
+import binascii
 import struct
+import time
 from enum import Enum
 from ..config import Config
 from ..crypto import Identity, Nonce, KeyBox
@@ -29,33 +31,47 @@ class Peer:
 		self.identity = identity
 		self.keybox = None
 
-	def recv_message(self, msg_class, enc=True):
+	def disconnect(self):
+		self.status = PeerStatus.DISCONNECTED
+		self.socket.disconnect()
+
+	def recv_raw_message(self, enc=True):
 		mlen = int.from_bytes(self.socket.recv(2), 'big')
 		data = self.socket.recv(mlen)
 
+		#print('recv', binascii.hexlify(data))
+
 		if enc:
 			data = self.keybox.decrypt(data)
+			print('recvdec', binascii.hexlify(data))
 
-		msg = msg_class.parse(data)
+		return data
+
+	def recv_message(self, msg_class, enc=True):
+		msg = msg_class.parse(self.recv_raw_message(enc))
 		logger.debug (msg)
 		return msg
 
-	def send_message(self, msg, enc=True):
-		logger.debug (msg)
-		data = msg.serialize()
 
+	def send_raw_message(self, data, enc=True):
 		if enc:
 			data = self.keybox.encrypt(data)
+			#print('sentenc', binascii.hexlify(data))
 
 		self.socket.send(struct.pack('>H', len(data)))
 		self.socket.send(data)
+
+
+	def send_message(self, msg, enc=True):
+		logger.debug (msg)
+		self.send_raw_message(msg.serialize(), enc)
 
 		
 	def handshake(self):
 		local_nonce = Nonce.random()
 
 		# Prepare and send the connection message
-		conn_msg_sent = ConnectionMessage(Config.get('p2p_default_port'), self.identity.pubkey, self.identity.powstamp, local_nonce, [Version("TEZOS_ALPHANET_2018-11-30T15:30:56Z", 0, 0)])
+		conn_msg_sent = ConnectionMessage(Config.get('p2p_default_port'), self.identity.pubkey, self.identity.powstamp, local_nonce, [Version("TEZOS_BETANET_2018-06-30T16:07:32Z", 0, 0)])
 		if not self.incoming:
 			self.send_message(conn_msg_sent, enc=False)
 
@@ -68,7 +84,11 @@ class Peer:
 			self.send_message(conn_msg_sent, enc=False)
 
 		# From here, communications are encrypted: keybox creation
-		nonces = Nonce.generate(conn_msg_sent.serialize(), conn_msg_recv.serialize(), not self.incoming)
+		sent = conn_msg_sent.serialize()
+		sent = struct.pack('>H', len(sent)) + sent
+		recv = conn_msg_recv.serialize()
+		recv = struct.pack('>H', len(recv)) + recv
+		nonces = Nonce.generate(sent, recv, self.incoming)
 		self.keybox = KeyBox(nonces['remote'], self.pubkey, nonces['local'], self.identity.seckey)
 
 
@@ -77,20 +97,17 @@ class Peer:
 
 		# Receive metadata
 		meta_msg = self.recv_message(MetadataMessage)
-		print (meta_msg)
 
 		# Send ack
 		self.send_message(AckMessage(True))
 
 		# Receive ack
 		ack_msg = self.recv_message(AckMessage)
-		print (ack_msg)
-
 		return ack_msg.status
 
-	def from_socket(socket, address):
+	def from_socket(identity, socket, address):
 		logger.info('connection from %s:%d' % (address, Config.get('p2p_default_port')))
-		p = Peer(address, Config.get('p2p_default_port'), socket)
+		p = Peer(identity, address, Config.get('p2p_default_port'), socket)
 		try:
 			p.handshake ()
 			p.status = PeerStatus.CONNECTED
@@ -104,7 +121,7 @@ class Peer:
 
 	def connect(self):
 		logger.info('connecting to %s:%d' % (self.host, self.port))
-		if True: #try:
+		try:
 			#self.socket.settimeout (3.0)
 			self.socket.connect ((self.host, self.port))
 			#self.socket.settimeout (None)
@@ -112,10 +129,17 @@ class Peer:
 			self.status = PeerStatus.CONNECTED
 			logger.info ('connected')
 			return True
-		else: #except Exception as e:
+		except Exception as e:
 			print (e)
 			self.status = PeerStatus.DISCONNECTED
 			logger.info ('connection failed')
 			return False
 		
-		
+
+	def loop(self):
+		# TODO Send GetCurrentBranch
+		self.send_raw_message(binascii.unhexlify('0000000600107a06a770'))
+
+		while self.status == PeerStatus.CONNECTED:
+			self.recv_raw_message()
+			time.sleep(2)

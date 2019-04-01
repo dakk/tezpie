@@ -73,6 +73,7 @@ class Config:
 	_instance = None
 
 	config = {
+		'chain_id': b'7a06a770',
 		'version': VERSION,
 		'data_dir': app_data_path(NAME),
 		'p2p_lookup_nodes': ["boot.tzalpha.net", "bootalpha.tzbeta.net"],

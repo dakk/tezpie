@@ -43,7 +43,6 @@ class MessageSerializer:
 		f = FIELDS[ftype]
 		self.raw.write(struct.pack(f[1], data))
 
-
 	def pack_raw(self, data):
 		self.raw.write(data)
 
@@ -72,3 +71,4 @@ class Message:
 
 	def parse(data):
 		pass
+

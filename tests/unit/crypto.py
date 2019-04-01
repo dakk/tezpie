@@ -1,6 +1,13 @@
 from tezpie import crypto
 import unittest
 import binascii
+from nacl.hash import blake2b
+from nacl.encoding import RawEncoder
+
+class TestNacl(unittest.TestCase):
+    def test_blake2(self):
+        self.assertEqual(blake2b(b"hello world", encoder=RawEncoder), binascii.unhexlify('256c83b297114d201b30179f3f0ef0cace9783622da5974326b436178aeef610'))
+
 
 class TestNonce(unittest.TestCase):
     def test_nonce_increment(self):
@@ -24,7 +31,6 @@ class TestNonce(unittest.TestCase):
         self.assertEqual(n['remote'].get_hex(), '8a09a2c43a61aa6eccee084aa66da9bc94b441b17615be58')
 
 
-
 class TestKeyBox(unittest.TestCase):
     def test_shared_key(self):
         pk = "96678b88756dd6cfd6c129980247b70a6e44da77823c3672a2ec0eae870d8646"
@@ -41,7 +47,6 @@ class TestKeyBox(unittest.TestCase):
         msg = b"ciao mondo"
         dec = box.native_box().decrypt(box.native_box().encrypt(msg, n.get())[24::], n.get())
         self.assertEqual(dec, msg)
-
 
     def test_encrypt(self):
         pk = "96678b88756dd6cfd6c129980247b70a6e44da77823c3672a2ec0eae870d8646"
