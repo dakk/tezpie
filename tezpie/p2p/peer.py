@@ -41,7 +41,7 @@ class Peer:
 
 		#print('recv', binascii.hexlify(data))
 
-		if enc:
+		if enc and len(data) > 0:
 			data = self.keybox.decrypt(data)
 			print('recvdec', binascii.hexlify(data))
 
@@ -134,7 +134,7 @@ class Peer:
 
 	def connect(self):
 		logger.info('connecting to %s:%d' % (self.host, self.port))
-		if True: #try:
+		try:
 			#self.socket.settimeout (3.0)
 			self.socket.connect ((self.host, self.port))
 			#self.socket.settimeout (None)
@@ -142,7 +142,7 @@ class Peer:
 			self.status = PeerStatus.CONNECTED
 			logger.info ('connected')
 			return True
-		else: #except Exception as e:
+		except Exception as e:
 			print (e)
 			self.status = PeerStatus.DISCONNECTED
 			logger.info ('connection failed')
