@@ -154,5 +154,5 @@ class Peer:
 		self.send_raw_message(binascii.unhexlify('0000000600107a06a770'))
 
 		while self.status == PeerStatus.CONNECTED:
-			self.recv_raw_message()
+			self.recv_message(Message)
 			time.sleep(2)

@@ -15,17 +15,24 @@ FIELDS = {
 
 class EncoderInstance:
 	''' This class keep decoded data '''
-	def __init__(self, name, fields, data):
+	def __init__(self, name, fields, data, tag):
 		self.fields = fields
 		self.data = data
 		self.name = name
+		self.tag = tag
 
 	def __repr__(self):
-		return self.name
+		return str(self)
 
 	def __str__(self):
-		return self.name
-		
+		s = self.name
+		if 'messages' in self.data:
+			s += ' [ '
+			for m in self.data['messages']:
+				s += str(m) + ' '
+			s += ']'
+		return s
+
 	def serialize(self):
 		bio = BytesIO()
 
@@ -47,6 +54,19 @@ class EncoderInstance:
 				for lelem in fdata:
 					bio.write(lelem.serialize())
 
+			elif f['type'] == 'tlist':
+				bio.write(struct.pack('>H', len(fdata) - 1))
+				
+				for lelem in fdata:
+					elser = lelem.serialize()
+					bio.write(struct.pack('>H', len(elser)))
+					bio.write(struct.pack('>H', int(lelem.tag, 16)))
+					bio.write(elser)
+
+			else:
+				ff = FIELDS[f['type']]
+				parsed[f['name']] = struct.unpack(ff[1], bio.read(ff[0]))[0]
+
 			else:
 				bio.write(struct.pack(FIELDS[f['type']][1], fdata))
 								
@@ -61,12 +81,13 @@ class EncoderInstance:
 
 	
 class Encoder:
-	def __init__(self, name, fields):
+	def __init__(self, name, fields, tag = None):
 		self.name = name
 		self.fields = fields
+		self.tag = tag
 
 	def __repr__(self):
-		return self.name
+		return str(self)
 
 	def __str__(self):
 		return self.name
@@ -77,7 +98,7 @@ class Encoder:
 		for f in self.fields:
 			parsed[f['name']] = data[f['name']]
 
-		return EncoderInstance(self.name, self.fields, parsed)
+		return EncoderInstance(self.name, self.fields, parsed, self.tag)
 
 	def parse(self, data):
 		parsed = {}
@@ -106,10 +127,26 @@ class Encoder:
 					ll.append(f['of'].parse(bio))
 				parsed[f['name']] = ll
 
+			# Tagged list, a list where elements are tags of other types
+			elif f['type'] == 'tlist':
+				l = struct.unpack('>H', bio.read(2))[0]
+				ll = []
+				for i in range(l + 1):
+					# Read the type
+					elsize = struct.unpack('>H', bio.read(2))[0]
+					t = hex(struct.unpack('>H', bio.read(2))[0])
+
+					# Get the data
+					if t in f['of']:
+						ll.append (f['of'][t].parse(bio))
+					else:
+						bio.read(elsize) # skip data if message is not recognized
+				parsed['messages'] = ll
+
 			else:
 				ff = FIELDS[f['type']]
 				parsed[f['name']] = struct.unpack(ff[1], bio.read(ff[0]))[0]
 				
-		return EncoderInstance(self.name, self.fields, parsed)
+		return EncoderInstance(self.name, self.fields, parsed, self.tag)
 
 
