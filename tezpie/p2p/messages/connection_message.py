@@ -1,57 +1,15 @@
-from io import BytesIO
-from .message import *
-from ...crypto.nonce import Nonce
+from ...encoder import Encoder
 
+Version = Encoder('Version', [
+	{ 'type': 'string', 'name': 'name' },
+	{ 'type': 'u16be', 'name': 'minor' },
+	{ 'type': 'u16be', 'name': 'major' }
+])
 
-class Version(MessagePart):
-	def __init__ (self, name, major, minor):
-		self.name = name
-		self.major = major
-		self.minor = minor
-
-	#def __repr__(self): 
-	#	return 'Version(%s, %d, %d)' % (self.name, self.minor, self.major)
-
-	def serialize(self, bio):
-		bio.pack('u16be', 0) # waht's this? 
-		bio.pack_string(self.name)
-		bio.pack('u16be', self.minor)
-		bio.pack('u16be', self.major)
-		return bio
-
-	def parse(bio):
-		bio.unpack('u16be') # waht's this?
-		name = bio.unpack_string()
-		minor = bio.unpack('u16be')
-		major = bio.unpack('u16be')
-		return Version(name, major, minor)
-
-
-class ConnectionMessage(Message):
-	def __init__ (self, port, pubkey, pow_stamp, nonce, versions):
-		self.port = port
-		self.versions = versions
-		self.pubkey = pubkey
-		self.pow_stamp = pow_stamp
-		self.nonce = nonce
-
-	#def __repr__(self): 
-	#	return 'ConnectionMessage(%d, %s)' % (self.port, self.pubkey)
-
-	def serialize(self):
-		bio = MessageSerializer()
-		bio.pack('u16be', self.port)
-		bio.pack_bytes(self.pubkey)
-		bio.pack_bytes(self.pow_stamp)
-		bio.pack_raw(self.nonce.get())
-		bio = self.versions[0].serialize(bio)
-		return bio.to_bytes()
-
-	def parse(data):
-		bio = MessageParser(data)
-		port = bio.unpack('u16be')
-		pubkey = bio.unpack_bytes(32)
-		pow_stamp = bio.unpack_bytes(24)
-		nonce = Nonce.from_bin(bio.unpack_raw(24))
-		version = Version.parse(bio)	
-		return ConnectionMessage(port, pubkey, pow_stamp, nonce, [version])
+ConnectionMessage = Encoder('ConnectionMessage', [
+	{ 'type': 'u16be', 'name': 'port' },
+	{ 'type': 'bytes', 'length': 32, 'name': 'pubkey' },
+	{ 'type': 'bytes', 'length': 24, 'name': 'powstamp' },
+	{ 'type': 'nonce', 'name': 'nonce' },
+	{ 'type': 'list', 'of': Version, 'name': 'versions' }
+])

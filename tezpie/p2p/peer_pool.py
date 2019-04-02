@@ -59,6 +59,5 @@ class PeerPool:
 			#p = Peer(self.identity, ip)
 			if p.connect():
 				self.peers[ip] = p
-
-			p.loop()
+				p.loop()
 			#time.sleep(2)

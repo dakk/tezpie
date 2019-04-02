@@ -49,7 +49,7 @@ class Peer:
 
 	def recv_message(self, msg_class, enc=True):
 		msg = msg_class.parse(self.recv_raw_message(enc))
-		logger.debug (msg)
+		logger.debug ('<= %s' % msg)
 		return msg
 
 
@@ -63,7 +63,7 @@ class Peer:
 
 
 	def send_message(self, msg, enc=True):
-		logger.debug (msg)
+		logger.debug ('=> %s' % msg)
 		self.send_raw_message(msg.serialize(), enc)
 
 		
@@ -71,13 +71,26 @@ class Peer:
 		local_nonce = Nonce.random()
 
 		# Prepare and send the connection message
-		conn_msg_sent = ConnectionMessage(Config.get('p2p_default_port'), self.identity.pubkey, self.identity.powstamp, local_nonce, [Version("TEZOS_BETANET_2018-06-30T16:07:32Z", 0, 0)])
+		conn_msg_sent = ConnectionMessage.from_data({
+			'port': Config.get('p2p_default_port'), 
+			'pubkey': self.identity.pubkey,
+			'powstamp': self.identity.powstamp, 
+			'nonce': local_nonce, 
+			'versions': [
+				Version.from_data({
+					'name': "TEZOS_BETANET_2018-06-30T16:07:32Z", 
+					'minor': 0, 
+					'major': 0
+				})
+			]
+		})
+
 		if not self.incoming:
 			self.send_message(conn_msg_sent, enc=False)
 
 		# Receive the connection message
 		conn_msg_recv = self.recv_message(ConnectionMessage, enc=False)
-		self.pubkey = conn_msg_recv.pubkey
+		self.pubkey = conn_msg_recv['pubkey']
 
 		# Prepare and send the connection message
 		if self.incoming:
@@ -93,17 +106,17 @@ class Peer:
 
 
 		# Send metadata
-		self.send_message(MetadataMessage(False, False))
+		self.send_message(MetadataMessage.from_data({ 'disable_mempool': False, 'private_node': False }))
 
 		# Receive metadata
 		meta_msg = self.recv_message(MetadataMessage)
 
 		# Send ack
-		self.send_message(AckMessage(True))
+		self.send_message(AckMessage.from_data({ 'status': AckMessage.ACK }))
 
 		# Receive ack
 		ack_msg = self.recv_message(AckMessage)
-		return ack_msg.status
+		return ack_msg['status'] == AckMessage.ACK
 
 	def from_socket(identity, socket, address):
 		logger.info('connection from %s:%d' % (address, Config.get('p2p_default_port')))
@@ -121,7 +134,7 @@ class Peer:
 
 	def connect(self):
 		logger.info('connecting to %s:%d' % (self.host, self.port))
-		try:
+		if True: #try:
 			#self.socket.settimeout (3.0)
 			self.socket.connect ((self.host, self.port))
 			#self.socket.settimeout (None)
@@ -129,7 +142,7 @@ class Peer:
 			self.status = PeerStatus.CONNECTED
 			logger.info ('connected')
 			return True
-		except Exception as e:
+		else: #except Exception as e:
 			print (e)
 			self.status = PeerStatus.DISCONNECTED
 			logger.info ('connection failed')

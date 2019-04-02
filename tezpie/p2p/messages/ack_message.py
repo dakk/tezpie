@@ -1,16 +1,8 @@
-from .message import *
+from ...encoder import Encoder
 
-class AckMessage(Message):
-	def __init__ (self, status):
-		self.status = status
+AckMessage = Encoder('AckMessage', [
+	{ 'type': 'u8be', 'name': 'status' }
+])
 
-	def serialize(self):
-		bio = MessageSerializer()
-		bio.pack('u8le', 0x00 if self.status else 0xFF)
-		return bio.to_bytes()
-		
-
-	def parse(data):
-		bio = MessageParser(data)
-		v = bio.unpack('u8le') == 0x00 
-		return AckMessage(v)
+AckMessage.ACK = 0x00
+AckMessage.NACK = 0xFF
