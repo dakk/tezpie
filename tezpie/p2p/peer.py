@@ -43,7 +43,7 @@ class Peer:
 
 		if enc and len(data) > 0:
 			data = self.keybox.decrypt(data)
-			print('recvdec', binascii.hexlify(data))
+			#print('recvdec', binascii.hexlify(data))
 
 		return data
 
@@ -64,6 +64,7 @@ class Peer:
 
 	def send_message(self, msg, enc=True):
 		logger.debug ('=> %s' % msg)
+		#print(binascii.hexlify(msg.serialize()))
 		self.send_raw_message(msg.serialize(), enc)
 
 		
@@ -151,7 +152,9 @@ class Peer:
 
 	def loop(self):
 		# TODO Send GetCurrentBranch
-		self.send_raw_message(binascii.unhexlify('0000000600107a06a770'))
+		self.send_message(Message.from_data({
+			"messages": [ GetCurrentBranchMessage.from_data({ 'chain_id': Config.get('chain_id') }) ]
+		}))
 
 		while self.status == PeerStatus.CONNECTED:
 			self.recv_message(Message)

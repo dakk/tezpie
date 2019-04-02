@@ -2,11 +2,10 @@ from ...encoder import Encoder
 from .connection_message import ConnectionMessage, Version
 from .metadata_message import MetadataMessage
 from .ack_message import AckMessage
+from .current_branch_message import GetCurrentBranchMessage, CurrentBranchMessage
 
 
 BootstrapMessage = Encoder('BootstrapMessage', [], "0x02")
-GetCurrentBranchMessage = Encoder('GetCurrentBranchMessage', [], "0x10")
-CurrentBranchMessage = Encoder('CurrentBranchMessage', [], "0x11")
 GetCurrentHeadMessage = Encoder('GetCurrentHeadMessage', [], "0x13")
 CurrentHeadMessage = Encoder('CurrentHeadMessage', [], "0x14")
 

@@ -39,6 +39,9 @@ class EncoderInstance:
 		for f in self.fields:
 			fdata = self.data[f['name']]
 
+			if type(f['type']) != str:
+				bio.write(fdata.serialize())
+
 			if f['type'] == 'bytes':
 				bio.write(binascii.unhexlify(fdata))
 
@@ -59,13 +62,9 @@ class EncoderInstance:
 				
 				for lelem in fdata:
 					elser = lelem.serialize()
-					bio.write(struct.pack('>H', len(elser)))
+					bio.write(struct.pack('>H', len(elser) + 2))
 					bio.write(struct.pack('>H', int(lelem.tag, 16)))
 					bio.write(elser)
-
-			else:
-				ff = FIELDS[f['type']]
-				parsed[f['name']] = struct.unpack(ff[1], bio.read(ff[0]))[0]
 
 			else:
 				bio.write(struct.pack(FIELDS[f['type']][1], fdata))
@@ -109,12 +108,14 @@ class Encoder:
 			bio = data
 
 		for f in self.fields:
-			if f['type'] == 'bytes':
+			if type(f['type']) != str:
+				parsed[f['name']] = f['type'].parse(bio)
+
+			elif f['type'] == 'bytes':
 				parsed[f['name']] = binascii.hexlify(bio.read(f['length']))
 
 			elif f['type'] == 'nonce':
 				parsed[f['name']] = Nonce.from_bin(bio.read(24))
-
 
 			elif f['type'] == 'string':
 				l = struct.unpack('>H', bio.read(2))[0]
@@ -140,7 +141,7 @@ class Encoder:
 					if t in f['of']:
 						ll.append (f['of'][t].parse(bio))
 					else:
-						bio.read(elsize) # skip data if message is not recognized
+						bio.read(elsize - 2) # skip data if message is not recognized
 				parsed['messages'] = ll
 
 			else:
