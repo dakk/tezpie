@@ -13,10 +13,10 @@ class TestBlockHeader(unittest.TestCase):
 
 
     def test_parse_serialize_fitness(self):
-        f = b'000000010000000008000000000010eb8c'
+        f = b'00010000000008000000000010eb8c'
         parsed = Fitness.parse(binascii.unhexlify(f), True)
-        serialized = binascii.hexlify(parsed.serialize(True))
         print(f)
         print(repr(parsed))
+        serialized = binascii.hexlify(parsed.serialize(True))
         print (serialized)
         self.assertEqual(serialized, f)
