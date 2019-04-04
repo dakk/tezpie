@@ -1,8 +1,7 @@
-from ...encoder import Encoder
-from ...proto import BlockHeader
+from ...proto import BlockHeader, Encoder
 
 GetCurrentBranchMessage = Encoder('GetCurrentBranchMessage', [
-    { "type": "bytes", "name": "chain_id", "length": 4 }
+    { "type": "hash", "name": "chain_id", "of": "chain_id" }
 ], "0x10")
 
 
@@ -13,10 +12,10 @@ currentbranch
 
 CurrentBranch = Encoder('CurrentBranch', [
     { "type": BlockHeader, "name": "header" },
-    { "type": 'bytes', "name": "history", "length": 0 }
+    { "type": 'bytes', "name": "history", "length": 4 }
 ])
 
 CurrentBranchMessage = Encoder('CurrentBranchMessage', [
-    { "type": "bytes", "name": "chain_id", "length": 4 },
+    { "type": "hash", "name": "chain_id", "of": "chain_id" },
     { "type": CurrentBranch, "name": "current_branch" }
 ], "0x11")

@@ -18,7 +18,8 @@ setup(name=config.NAME,
 		'tezpie.proto',
 		'tezpie.storage',
 		'tezpie.crypto',
-		'tezpie.rpc'
+		'tezpie.rpc',
+		'tezpie.chain'
 	],
 	entry_points={
 		'console_scripts': [

@@ -1,2 +1,3 @@
 from . import constants
-from .block import BlockHeader
+from .block_header import BlockHeader
+from .encoder import Encoder

@@ -1,4 +1,4 @@
-from ...encoder import Encoder
+from ...proto import Encoder
 
 AckMessage = Encoder('AckMessage', [
 	{ 'type': 'u8be', 'name': 'status' }

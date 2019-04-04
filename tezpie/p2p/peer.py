@@ -50,6 +50,7 @@ class Peer:
 	def recv_message(self, msg_class, enc=True):
 		msg = msg_class.parse(self.recv_raw_message(enc))
 		logger.debug ('<= %s' % msg)
+		print(repr(msg))
 		return msg
 
 
@@ -135,7 +136,7 @@ class Peer:
 
 	def connect(self):
 		logger.info('connecting to %s:%d' % (self.host, self.port))
-		try:
+		if True: #try:
 			#self.socket.settimeout (3.0)
 			self.socket.connect ((self.host, self.port))
 			#self.socket.settimeout (None)
@@ -143,7 +144,7 @@ class Peer:
 			self.status = PeerStatus.CONNECTED
 			logger.info ('connected')
 			return True
-		except Exception as e:
+		else: #except Exception as e:
 			print (e)
 			self.status = PeerStatus.DISCONNECTED
 			logger.info ('connection failed')
@@ -157,5 +158,6 @@ class Peer:
 		}))
 
 		while self.status == PeerStatus.CONNECTED:
-			self.recv_message(Message)
-			time.sleep(2)
+			mc = self.recv_message(Message)
+			print(repr(mc))
+			time.sleep(1)

@@ -1,4 +1,4 @@
-from ...encoder import Encoder
+from ...proto import Encoder
 
 MetadataMessage = Encoder('MetadataMessage', [
 	{ 'type': 'bool', 'name': 'disable_mempool' },

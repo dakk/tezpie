@@ -1,4 +1,4 @@
-from ...encoder import Encoder
+from ...proto import Encoder
 
 Version = Encoder('Version', [
 	{ 'type': 'string', 'name': 'name' },

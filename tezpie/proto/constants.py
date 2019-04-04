@@ -30,6 +30,6 @@ PREFIXES = {
     'Lo': bytes([133, 233]),
     'LLo': bytes([29, 159, 109]),
     'P': bytes([2, 170]),
-    'Co': bytes([79, 179]),
+    'Co': bytes([79, 199]),
     'id': bytes([153, 103]),
 }
