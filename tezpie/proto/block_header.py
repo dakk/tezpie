@@ -1,8 +1,7 @@
-from .encoder import Encoder
+from .encoder import EncoderInstance, Encoder
 from .fitness import Fitness
 
 ShellHeader = Encoder('ShellHeader', [
-    { 'type': 'i32be', 'name': 'unk' },
     { 'type': 'i32be', 'name': 'level' },
     { 'type': 'u8be', 'name': 'proto' },
     { 'type': 'hash', 'of': 'block', 'name': 'pred' },
@@ -13,7 +12,11 @@ ShellHeader = Encoder('ShellHeader', [
     { 'type': 'hash', 'of': 'context', 'name': 'context' }
 ])
 
+class BlockHeaderInstance(EncoderInstance):
+    def hash(self):
+        return 'ciao'
+
 BlockHeader = Encoder('BlockHeader', [
     { 'type': ShellHeader, 'name': 'shell' },
     { 'type': 'bytes', 'name': 'proto_data', 'length': 2 }
-])
+], instance=BlockHeaderInstance, dynamic=True)

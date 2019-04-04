@@ -25,11 +25,12 @@ FIELDS = {
 
 class EncoderInstance:
 	''' This class keep decoded data '''
-	def __init__(self, name, fields, data, tag):
+	def __init__(self, name, fields, data, tag, dynamic):
 		self.fields = fields
 		self.data = data
 		self.name = name
 		self.tag = tag
+		self.dynamic = dynamic
 
 	def __repr__(self):
 		return str(self.data)
@@ -58,11 +59,21 @@ class EncoderInstance:
 	def encoder_name(self):
 		return self.name
 
-	def serialize(self):
+	def serialize(self, skipSize=False):
 		bio = BytesIO()
 
-		for f in self.fields:
-			fdata = self.data[f['name']]
+		if type(self.fields) == list:
+			fields = self.fields
+		else:
+			fields = [ self.fields ]
+
+		for f in fields:
+			print (f)
+			if f['name'] == 'noname':
+				fdata = self.data
+			else:
+				print(self.data, f['name'])
+				fdata = self.data[f['name']]
 
 			if type(f['type']) != str:
 				bio.write(fdata.serialize())
@@ -118,14 +129,27 @@ class EncoderInstance:
 				bio.write(struct.pack(FIELDS[f['type']][1], fdata))
 								
 		bio.seek(0)
-		return bio.read()
+
+		data = bio.read()
+		print(binascii.hexlify(data))
+		if self.dynamic and not skipSize:
+			osize = struct.pack('>I', len(data))
+			return osize + data
+		else:
+			return data
 
 	
 class Encoder:
-	def __init__(self, name, fields, tag = None):
+	def __init__(self, name, fields, tag = None, instance = None, dynamic=False):
 		self.name = name
 		self.fields = fields
 		self.tag = tag
+		self.dynamic = dynamic
+
+		if instance:
+			self.instance = instance 
+		else:
+			self.instance = EncoderInstance
 
 	def __repr__(self):
 		return str(self)
@@ -139,9 +163,9 @@ class Encoder:
 		for f in self.fields:
 			parsed[f['name']] = data[f['name']]
 
-		return EncoderInstance(self.name, self.fields, parsed, self.tag)
+		return self.instance(self.name, self.fields, parsed, self.tag, self.dynamic)
 
-	def parse(self, data):
+	def parse(self, data, skipSize=False):
 		parsed = {}
 
 		if data.__class__ == bytes:
@@ -149,12 +173,36 @@ class Encoder:
 		else:
 			bio = data
 
-		for f in self.fields:
+		if self.dynamic and not skipSize:
+			osize = struct.unpack('>I', bio.read(4))[0]
+			data2 = bio.read(osize)
+			bio = BytesIO(data2)
+			#print('osize', self.name, osize)
+			#print(binascii.hexlify(data2))
+		elif self.dynamic and skipSize:
+			osize = len(data)
+
+		if type(self.fields) == list:
+			fields = self.fields
+		else:
+			fields = [ self.fields ]
+
+		ptell = bio.tell()
+
+		for f in fields:
+			if not ('name' in f):
+				f['name'] = 'noname'
+
 			if type(f['type']) != str:
 				parsed[f['name']] = f['type'].parse(bio)
 
 			elif f['type'] == 'bytes':
-				parsed[f['name']] = binascii.hexlify(bio.read(f['length']))
+				if self.dynamic and len(fields) == 1:
+					l = osize
+				else:
+					l = f['length']
+
+				parsed[f['name']] = binascii.hexlify(bio.read(l))
 
 			elif f['type'] == 'nonce':
 				parsed[f['name']] = Nonce.from_bin(bio.read(24))
@@ -213,10 +261,18 @@ class Encoder:
 				ff = FIELDS[f['type']]
 				parsed[f['name']] = struct.unpack(ff[1], bio.read(ff[0]))[0]
 
-		t = bio.tell()
-		print(t, len(bio.read()))
-		bio.seek(t)
+
+		if type(self.fields) != list:
+			parsed = parsed[self.fields['name']]
+
+		ptell_end = bio.tell()
+
+		if self.dynamic and ptell_end - ptell < osize:
+			bio.seek(ptell + osize)
+			#print(self.fields, 'osize', osize, (ptell_end - ptell), 'not read', osize - (ptell_end - ptell))
+		#print(ptell_end - ptell, ptell_end, len(bio.read()))
+		#bio.seek(ptell_end)
 				
-		return EncoderInstance(self.name, self.fields, parsed, self.tag)
+		return self.instance(self.name, self.fields, parsed, self.tag, self.dynamic)
 
 
