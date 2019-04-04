@@ -160,4 +160,7 @@ class Peer:
 		while self.status == PeerStatus.CONNECTED:
 			mc = self.recv_message(Message)
 			print(repr(mc))
-			time.sleep(1)
+			time.sleep(2)
+			self.send_message(Message.from_data({
+				"messages": [ GetCurrentBranchMessage.from_data({ 'chain_id': Config.get('chain_id') }) ]
+			}))

@@ -10,5 +10,5 @@ GetCurrentBranchMessage = Encoder('GetCurrentBranchMessage', [
 CurrentBranchMessage = Encoder('CurrentBranchMessage', [
     { "type": "hash", "name": "chain_id", "of": "chain_id" },
     { "type": BlockHeader, "name": "header" },
-    #{ "type": 'list', "name": "history", "of": 'u8be' }
+    { "type": 'bytes', "length": 'dynamic', "name": "history" }
 ], "0x11")

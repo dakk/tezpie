@@ -1,7 +1,6 @@
 from .encoder import EncoderInstance, Encoder
 from .fitness import Fitness
 
-
 class BlockHeaderInstance(EncoderInstance):
     def hash(self):
         return 'ciao'
@@ -13,7 +12,7 @@ BlockHeader = Encoder('BlockHeader', [
     { 'type': 'time', 'name': 'time' },
     { 'type': 'u8be', 'name': 'validation_pass' },
     { 'type': 'hash', 'of': 'operationlist', 'name': 'operations_hash' },
-    { 'type': Fitness, 'name': 'fitness' },
+    { 'type': 'bytes', 'name': 'fitness', 'length': 'dynamic' },
     { 'type': 'hash', 'of': 'context', 'name': 'context' },
-    { 'type': 'list', 'of': 'u8be', 'name': 'proto_data' }
+    { 'type': 'bytes', 'length': 'dynamic', 'name': 'proto_data' }
 ], instance=BlockHeaderInstance, dynamic=True)

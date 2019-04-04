@@ -77,6 +77,8 @@ class EncoderInstance:
 				bio.write(fdata.serialize())
 
 			if f['type'] == 'bytes':
+				if f['length'] == 'dynamic':
+					bio.write(struct.pack('>I', len(fdata)))
 				bio.write(binascii.unhexlify(fdata))
 
 			elif f['type'] == 'nonce':
@@ -195,6 +197,8 @@ class Encoder:
 			elif f['type'] == 'bytes':
 				if self.dynamic and len(fields) == 1:
 					l = osize
+				elif f['length'] == 'dynamic':
+					l = struct.unpack('>I', bio.read(4))[0]
 				else:
 					l = f['length']
 
