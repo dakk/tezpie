@@ -1,14 +1,12 @@
-from ...proto import BlockHeaderEncoder, Encoder
+from ...proto import BlockHeaderEncoder, Encoder, MempoolEncoder
 
-# Todo
 GetCurrentHeadMessage = Encoder('GetCurrentHeadMessage', [
     { "type": "hash", "name": "chain_id", "of": "chain_id" }
 ], "0x13")
 
 
-# Todo
 CurrentHeadMessage = Encoder('CurrentHeadMessage', [
     { "type": "hash", "name": "chain_id", "of": "chain_id" },
     { "type": BlockHeaderEncoder, "name": "header" },
-    { "type": 'bytes', "length": 'dynamic', "name": "history" }
+    { "type": Mempool, "name": "mempool" },
 ], "0x14")

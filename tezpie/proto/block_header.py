@@ -5,7 +5,7 @@ class BlockHeader(EncoderInstance):
     def hash(self):
         return 'ciao'
 
-BlockHeaderEncoder = Encoder('BlockHeaderEncoder', [
+BlockHeaderEncoder = Encoder('BlockHeader', [
     { 'type': 'i32be', 'name': 'level' },
     { 'type': 'u8be', 'name': 'proto' },
     { 'type': 'hash', 'of': 'block', 'name': 'pred' },
