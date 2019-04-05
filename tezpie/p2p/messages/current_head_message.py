@@ -1,12 +1,14 @@
 from ...proto import BlockHeaderEncoder, Encoder
 
-GetCurrentBranchMessage = Encoder('GetCurrentBranchMessage', [
+# Todo
+GetCurrentHeadMessage = Encoder('GetCurrentHeadMessage', [
     { "type": "hash", "name": "chain_id", "of": "chain_id" }
-], "0x10")
+], "0x13")
 
 
-CurrentBranchMessage = Encoder('CurrentBranchMessage', [
+# Todo
+CurrentHeadMessage = Encoder('CurrentHeadMessage', [
     { "type": "hash", "name": "chain_id", "of": "chain_id" },
     { "type": BlockHeaderEncoder, "name": "header" },
     { "type": 'bytes', "length": 'dynamic', "name": "history" }
-], "0x11")
+], "0x14")

@@ -25,18 +25,18 @@ FIELDS = {
 
 class EncoderInstance:
 	''' This class keep decoded data '''
-	def __init__(self, name, fields, data, tag, dynamic):
+	def __init__(self, encoder, fields, data, tag, dynamic):
 		self.fields = fields
 		self.data = data
-		self.name = name
 		self.tag = tag
 		self.dynamic = dynamic
+		self.encoder = encoder
 
 	def __repr__(self):
 		return str(self.data)
 
 	def __str__(self):
-		s = self.name
+		s = self.encoder.name
 		if 'messages' in self.data:
 			s += ' [ '
 			for m in self.data['messages']:
@@ -56,8 +56,11 @@ class EncoderInstance:
 		else:
 			return None
 
+	def encoder(self):
+		return self.encoder
+
 	def encoder_name(self):
-		return self.name
+		return self.encoder.name
 
 	def serialize(self, skipSize=False):
 		bio = BytesIO()
@@ -75,38 +78,28 @@ class EncoderInstance:
 
 			if type(f['type']) != str:
 				bio.write(fdata.serialize())
-
-			if f['type'] == 'bytes':
+			elif f['type'] == 'bytes':
 				if f['length'] == 'dynamic':
 					bio.write(struct.pack('>I', len(fdata)))
 				bio.write(binascii.unhexlify(fdata))
-
 			elif f['type'] == 'nonce':
 				bio.write(fdata.get())
-
 			elif f['type'] == 'time':
 				ff = FIELDS['i64be']
-				bio.write(fstruct.pack(ff[1], datetime.timestamp(fdata)))
-
+				bio.write(struct.pack(ff[1], int(fdata.timestamp())))
 			elif f['type'] == 'string':
 				bio.write(struct.pack('>H', len (fdata)))
 				bio.write(fdata.encode('ascii'))
-
 			elif f['type'] == 'hash' and f['of'] == 'block':
 				bio.write(base58.b58decode_check(fdata)[len(constants.PREFIXES['b'])::])
-
 			elif f['type'] == 'hash' and f['of'] == 'chain_id':
 				bio.write(base58.b58decode_check(fdata)[len(constants.PREFIXES['Net'])::])
-
 			elif f['type'] == 'hash' and f['of'] == 'context':
 				bio.write(base58.b58decode_check(fdata)[len(constants.PREFIXES['Co'])::])
-
 			elif f['type'] == 'hash' and f['of'] == 'operationlist':
 				bio.write(base58.b58decode_check(fdata)[len(constants.PREFIXES['LLo'])::])
-
 			elif f['type'] == 'hash' and f['of'] == 'operation':
 				bio.write(base58.b58decode_check(fdata)[len(constants.PREFIXES['o'])::])
-
 			elif f['type'] == 'list':
 				bio.write(struct.pack('>H', len(fdata) - 1))
 				for lelem in fdata:
@@ -115,7 +108,6 @@ class EncoderInstance:
 						bio.write(struct.pack(ff[1], lelem))
 					else:
 						bio.write(lelem.serialize())
-
 			elif f['type'] == 'tlist':
 				bio.write(struct.pack('>H', len(fdata) - 1))
 				
@@ -124,7 +116,6 @@ class EncoderInstance:
 					bio.write(struct.pack('>H', len(elser) + 2))
 					bio.write(struct.pack('>H', int(lelem.tag, 16)))
 					bio.write(elser)
-
 			else:
 				bio.write(struct.pack(FIELDS[f['type']][1], fdata))
 								
@@ -162,7 +153,7 @@ class Encoder:
 		for f in self.fields:
 			parsed[f['name']] = data[f['name']]
 
-		return self.instance(self.name, self.fields, parsed, self.tag, self.dynamic)
+		return self.instance(self, self.fields, parsed, self.tag, self.dynamic)
 
 	def parse(self, data, skipSize=False):
 		parsed = {}
@@ -267,6 +258,6 @@ class Encoder:
 
 		#ptell_end = bio.tell()
 				
-		return self.instance(self.name, self.fields, parsed, self.tag, self.dynamic)
+		return self.instance(self, self.fields, parsed, self.tag, self.dynamic)
 
 

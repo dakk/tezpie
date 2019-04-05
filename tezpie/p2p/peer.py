@@ -159,6 +159,7 @@ class Peer:
 
 		while self.status == PeerStatus.CONNECTED:
 			mc = self.recv_message(Message)
+			#self.send_message(mc)
 			print(repr(mc))
 			time.sleep(2)
 			self.send_message(Message.from_data({
